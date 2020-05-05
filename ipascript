@@ -1,0 +1,44 @@
+#!/bin/bash
+Beg='Please enter your choice: '
+options=("Add a group" "Add A User" "Add User to Group" "rest a password" "List Active Users" "List All Groups" "Quit")
+rep='"1) Add a group" "2) Add A User" "3) Add User to Group" "4) rest a password" "5) List Active Users" "6) List All Groups" "7) Quit"'
+select opt in "${options[@]}" 
+
+do
+    case $opt in
+        "Add a group")
+            read -p "Enter the new group you wish to add" GN
+            ipa group-add $GN
+            echo $rep
+            ;;
+        "Add A User")
+            read -p "Please enter the user's first name: " FN 
+            read -p "Please enter the user's last name: " LN
+            ssh -tq server "ipa user-add --first=$FN --last=$LN"
+            echo $rep
+            ;;
+        "Add User to Group")
+            read -p "Enter the group you wish your user(s) to be added to: " GP 
+            echo "Please make sure the user is followed by a comma when using entering multiple users. (e.g) --users=jsmith,bjensen"
+            read -p "Enter the user's to be added to the group: " UN
+            echo $rep
+            ;;
+        "rest a password")
+            read -p "Enter the new group you wish to add" GN
+            ipa group-add $GN
+            echo $rep
+            ;;
+        "List Active Users")
+            ipa user-find --all --raw | grep -iE '(dn:|krbLastSuccessfulAuth)' | cut -d ',' -f1 | cut -d: -f2 |  sed -re 's/([0-9]{4})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]+)Z/\3-\2-\1 \4:\5:\6/'
+            echo $rep
+            ;;
+        "List All Groups")
+            ipa group-find
+            echo $rep
+            ;;
+        "Quit")
+            break
+            ;;
+        *) echo "invalid option $REPLY";;
+    esac
+done
